@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/EasyLite.iml" filepath="$PROJECT_DIR$/.idea/EasyLite.iml" />
+      <module fileurl="file://$PROJECT_DIR$/easylite/easylite.iml" filepath="$PROJECT_DIR$/easylite/easylite.iml" />
+      <module fileurl="file://$PROJECT_DIR$/easylite-annotation/easylite-annotation.iml" filepath="$PROJECT_DIR$/easylite-annotation/easylite-annotation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/easylite-complier/easylite-complier.iml" filepath="$PROJECT_DIR$/easylite-complier/easylite-complier.iml" />
+      <module fileurl="file://$PROJECT_DIR$/simple/simple.iml" filepath="$PROJECT_DIR$/simple/simple.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,17 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.squareup:javapoet:1.11.1'
+    //javapoet生成代码鬼知道为啥后续版本名字会变
+    implementation 'com.google.auto.service:auto-service:1.0-rc4'
+    //生成代码
+    implementation project(':easylite-annotation')
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
