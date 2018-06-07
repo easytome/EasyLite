@@ -59,6 +59,33 @@ public class IdField {
         return TypeUtil.getTypeToSQL(typeName);
     }
 
+    String getTypeInitParam() {
+        if (typeName == null || "".equals(typeName))
+            return "null";
+        if (typeName.contains("byte")) {
+            return "0";
+        } else if (typeName.contains("short")) {
+            return "0";
+        } else if (typeName.contains("int")) {
+            return "0";
+        } else if (typeName.contains("long")) {
+            return "0";
+        } else if (typeName.contains("float")) {
+            return "0";
+        } else if (typeName.contains("double")) {
+            return "0";
+        } else if (typeName.contains("boolean")) {
+            return "false";
+        } else if (typeName.contains("char")) {
+            return "0";
+        }
+        return "null";
+    }
+
+    public boolean isAutoincrement() {
+        return autoincrement;
+    }
+
     public static String getDefaultSQL() {
         return DEFAULT_KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,";
     }

@@ -13,17 +13,23 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import jeremy.easylite.api.config.Config;
+import jeremy.easylite.api.dao.AbstractSQLOpenHelper;
+import jeremy.easylite.api.dao.IUpdataSchema;
 import jeremy.easylite.api.utils.LogUtils;
 import jeremy.easylite.api.utils.Utils;
 
 public class EasyDatabaseUtil {
-    private static SQLiteOpenHelper sql;
+    private static AbstractSQLOpenHelper sql;
 
     public static void init(Application application, boolean debug) {
+        init(application, null, debug);
+    }
+
+    public static void init(Application application, IUpdataSchema iUpdataSchema, boolean debug) {
         sql = Utils.getEasySQLOpenHelper(Config.CLASSNAME_EasyDatabaseHelper,
                 application, Config.getDatabaseName(application),
                 new EasyCursorFactory(debug),
-                Config.getDatabaseVersion(application));
+                Config.getDatabaseVersion(application), iUpdataSchema);
         getDB();
     }
 
@@ -38,7 +44,7 @@ public class EasyDatabaseUtil {
         return sql.getWritableDatabase();
     }
 
-    public static String[] getColumnNames(SQLiteDatabase db,String tableName) {
+    public static String[] getColumnNames(SQLiteDatabase db, String tableName) {
         String[] columns = new String[0];
         String query = "SELECT * FROM " + tableName;
         Cursor cr = db.rawQuery(query, null);
@@ -62,40 +68,62 @@ public class EasyDatabaseUtil {
         }
     }
 
-    public static String getTypeByName(SQLiteDatabase db,String tableName, String columNname) {
+    /**
+     * 返回列的类型
+     * <p>
+     * 只有在有数据的时候才会返回类型
+     *
+     * @param db
+     * @param tableName
+     * @param columNname
+     * @return
+     */
+    public static String getTypeByName(SQLiteDatabase db, String tableName, String columNname) {
         String query = "select typeof(" + columNname + ") from " + tableName;
-        Cursor cr = db.rawQuery(query, null);
-        LogUtils.i("getTypeByName cr:" + cr);
-        if (cr == null)
+        Cursor cr = null;
+        try {
+            cr = db.rawQuery(query, null);
+            LogUtils.i("getTypeByName cr:" + cr);
+            if (cr == null)
+                return null;
+            int count = cr.getColumnCount();
+            LogUtils.i("getTypeByName count:" + count);
+            if (count == 0)
+                return null;
+            if (cr.moveToFirst()) {
+                String type = cr.getString(0).toUpperCase();
+                LogUtils.i("getTypeByName moveToFirst:" + type);
+                return type;
+            }
             return null;
-        int count = cr.getColumnCount();
-        LogUtils.i("getTypeByName count:" + count);
-        if (count == 0)
-            return null;
-        if (cr.moveToFirst()) {
-            String type = cr.getString(0).toUpperCase();
-            LogUtils.i("getTypeByName moveToFirst:" + type);
-            return type;
+        } finally {
+            if (cr != null)
+                cr.close();
         }
-        return null;
     }
 
     public static String[] getAllTable(SQLiteDatabase db) {
         String query = "select name from sqlite_master where type='table' order by name";
-        Cursor cr = db.rawQuery(query, null);
-        int count = cr.getCount();
-        if (count == 0)
-            return null;
-        String[] tables = new String[count];
-        int i = 0;
-        if (cr.moveToFirst()) {
-            do {
-                tables[i] = cr.getString(0);
-                LogUtils.i("SQLiteDatabase table:" + tables[i]);
-                i++;
-            } while (cr.moveToNext());
+        Cursor cr = null;
+        try {
+            cr = db.rawQuery(query, null);
+            int count = cr.getCount();
+            if (count == 0)
+                return null;
+            String[] tables = new String[count];
+            int i = 0;
+            if (cr.moveToFirst()) {
+                do {
+                    tables[i] = cr.getString(0);
+                    LogUtils.i("SQLiteDatabase table:" + tables[i]);
+                    i++;
+                } while (cr.moveToNext());
+            }
+            return tables;
+        } finally {
+            if (cr != null)
+                cr.close();
         }
-        return tables;
     }
 
     public static long save(String table, ContentValues values) {

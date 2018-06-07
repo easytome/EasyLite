@@ -30,13 +30,16 @@ public class EasyDBClass {
     public JavaFile generateFinder() {
         ParameterSpec paramsContext = ParameterSpec.builder(TypeUtil.Context, "context").build();
         ParameterSpec paramsCursorFactory = ParameterSpec.builder(TypeUtil.CursorFactory, "factory").build();
+        ParameterSpec paramsCursorIUpdataSchema = ParameterSpec.builder(TypeUtil.IUpdataSchema, "iUpdataSchema").build();
         MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(paramsContext)
                 .addParameter(String.class, "name")
                 .addParameter(paramsCursorFactory)
                 .addParameter(TypeName.INT, "version")
-                .addStatement("super($N, $N, $N, $N)", "context", "name", "factory", "version");
+                .addParameter(paramsCursorIUpdataSchema)
+                .addStatement("super($N, $N, $N, $N)", "context", "name", "factory", "version")
+                .addStatement("setUpdataSchema($N)", "iUpdataSchema");
 
         ParameterSpec paramsSQLiteDatabase = ParameterSpec.builder(TypeUtil.SQLiteDatabase, "db").build();
         //构建onCreate方法
@@ -133,28 +136,6 @@ public class EasyDBClass {
         method.addStatement("return list");
         return method;
     }
-//    String[] tables = EasyDatabaseUtil.getAllTable();
-//    List<TableEntity> tableList = new ArrayList<>();
-//        if (tables == null)
-//            return;
-//        for (String table : tables) {
-//        TableEntity tableEntity = new TableEntity();
-//        String[] columns = EasyDatabaseUtil.getColumnNames(table);
-//        int count = 0;
-//        if (columns != null) {
-//            count = columns.length;
-//            for (String column : columns) {
-//                String type = EasyDatabaseUtil.getTypeByName(table, column);
-//                ColumnEntity columnEntity = new ColumnEntity();
-//                columnEntity.name = column;
-//                columnEntity.type = type;
-//                tableEntity.columns.add(columnEntity);
-//            }
-//        }
-//        tableEntity.tableName = table;
-//        tableEntity.columnNum = count;
-//        tableList.add(tableEntity);
-//    }
 
     MethodSpec.Builder createGetOldTable() {
         ClassName TableEntity = ClassName.bestGuess("jeremy.easylite.api.entity.TableEntity");

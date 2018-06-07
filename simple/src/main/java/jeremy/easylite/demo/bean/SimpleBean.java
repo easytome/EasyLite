@@ -7,10 +7,10 @@ import jeremy.easylite.annotation.*;
  */
 @EasyTable(name = "simple_tb")
 public class SimpleBean {
-    @EasyId(name = "simple_id",autoincrement = true)
-    public int id;
+    @EasyId(name = "simple_id", autoincrement = false)
+    public Long id;
 
-    @EasyColumn(unique = true)//设置唯一，不设置默认为false，注意这不是主键，默认有一个主键id，发生冲突会插入失败
+    @EasyColumn()//设置唯一，不设置默认为false，注意这不是主键，默认有一个主键id，发生冲突会插入失败
     public String name;//必须用public修饰
 
     @EasyColumn(name = "MINT")//设置数据库列名不设置默认为参数名

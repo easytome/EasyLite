@@ -290,8 +290,14 @@ public class TableClass {
                 .addParameter(TypeName.get(typeMirror), "t")
                 .returns(TypeUtil.ContentValues)
                 .addStatement("ContentValues v = new ContentValues()");
-        if (easyIdField != null) {
-            getContentValuesBuilder.addStatement("v.put(\"$N\",t.$N)", easyIdField.getName(), easyIdField.getSimpleName());
+        if (easyIdField != null && (!easyIdField.isAutoincrement())) {
+            if ("null".equals(easyIdField.getTypeInitParam())) {
+                getContentValuesBuilder.beginControlFlow("if(t.$N!=null)", easyIdField.getSimpleName());
+                getContentValuesBuilder.addStatement("v.put(\"$N\",t.$N)", easyIdField.getName(), easyIdField.getSimpleName());
+                getContentValuesBuilder.endControlFlow();
+            } else {
+                getContentValuesBuilder.addStatement("v.put(\"$N\",t.$N)", easyIdField.getName(), easyIdField.getSimpleName());
+            }
         }
         for (ColumnField columnField : columnFields) {
             getContentValuesBuilder.addStatement("v.put(\"$N\",t.$N)", columnField.getName(), columnField.getSimpleName());

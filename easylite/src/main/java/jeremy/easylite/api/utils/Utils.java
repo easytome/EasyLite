@@ -6,19 +6,22 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.lang.reflect.Constructor;
 
+import jeremy.easylite.api.dao.AbstractSQLOpenHelper;
 import jeremy.easylite.api.dao.IEasyDao;
 import jeremy.easylite.api.config.Config;
+import jeremy.easylite.api.dao.IUpdataSchema;
 
 /**
  * Created by JIANGJIAN650 on 2018/5/26.
  */
 
 public class Utils {
-    public static SQLiteOpenHelper getEasySQLOpenHelper(String className, Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public static AbstractSQLOpenHelper getEasySQLOpenHelper(String className, Context context, String name,
+                                                             SQLiteDatabase.CursorFactory factory, int version, IUpdataSchema iUpdataSchema) {
         try {
             Class<?> finderClass = Class.forName(className);
-            Constructor constructor = finderClass.getConstructor(Context.class, String.class, SQLiteDatabase.CursorFactory.class, int.class);
-            return (SQLiteOpenHelper) constructor.newInstance(context, name, factory, version);
+            Constructor constructor = finderClass.getConstructor(Context.class, String.class, SQLiteDatabase.CursorFactory.class, int.class, IUpdataSchema.class);
+            return (AbstractSQLOpenHelper) constructor.newInstance(context, name, factory, version, iUpdataSchema);
         } catch (Exception e) {
             e.printStackTrace();
         }
