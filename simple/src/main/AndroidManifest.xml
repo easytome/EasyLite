@@ -17,7 +17,7 @@
         //数据库版本号
         <meta-data
             android:name="version"
-            android:value="18" />
+            android:value="1" />
         //log
         <meta-data
             android:name="logcat"
