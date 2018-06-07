@@ -141,6 +141,7 @@ public class EasyDBClass {
         ClassName TableEntity = ClassName.bestGuess("jeremy.easylite.api.entity.TableEntity");
         ClassName ColumnEntity = ClassName.bestGuess("jeremy.easylite.api.entity.ColumnEntity");
         ParameterizedTypeName listOfTableEntity = ParameterizedTypeName.get(TypeUtil.List, TableEntity);//List<T>
+        ParameterizedTypeName mapOfString = ParameterizedTypeName.get(TypeUtil.Map, TypeUtil.String, TypeUtil.String);
         //构建getUpdataSchema方法
         MethodSpec.Builder method = MethodSpec.methodBuilder("getOldTable")
                 .addParameter(TypeUtil.SQLiteDatabase, "db")
@@ -159,8 +160,12 @@ public class EasyDBClass {
                 .addStatement("int count = 0")
                 .beginControlFlow("if (columns != null)")
                 .addStatement("count = columns.length")
+                .addStatement("$T map = EasyDatabaseUtil.getTypeByNames(db, table, columns)",mapOfString)
                 .beginControlFlow("for (String column : columns)")
-                .addStatement("String type = EasyDatabaseUtil.getTypeByName(db, table, column)")
+                .addStatement("String type = null")
+                .beginControlFlow("if(map!=null&&map.containsKey($N))","column")
+                .addStatement("type = map.get(column)")
+                .endControlFlow()
                 .addStatement("$T columnEntity = new $T()", ColumnEntity, ColumnEntity)
                 .addStatement("columnEntity.name = column")
                 .addStatement("columnEntity.type = type")

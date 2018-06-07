@@ -12,6 +12,9 @@ import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import jeremy.easylite.api.config.Config;
 import jeremy.easylite.api.dao.AbstractSQLOpenHelper;
 import jeremy.easylite.api.dao.IUpdataSchema;
@@ -33,14 +36,13 @@ public class EasyDatabaseUtil {
         getDB();
     }
 
-    static SQLiteDatabase getDB() {
+    public static SQLiteDatabase getDB() {
         if (sql == null)
             try {
                 throw new Exception("EasyLiteUtil not init.");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         return sql.getWritableDatabase();
     }
 
@@ -83,17 +85,54 @@ public class EasyDatabaseUtil {
         Cursor cr = null;
         try {
             cr = db.rawQuery(query, null);
-            LogUtils.i("getTypeByName cr:" + cr);
             if (cr == null)
                 return null;
             int count = cr.getColumnCount();
-            LogUtils.i("getTypeByName count:" + count);
             if (count == 0)
                 return null;
             if (cr.moveToFirst()) {
                 String type = cr.getString(0).toUpperCase();
-                LogUtils.i("getTypeByName moveToFirst:" + type);
                 return type;
+            }
+            return null;
+        } finally {
+            if (cr != null)
+                cr.close();
+        }
+    }
+
+    /**
+     * 返回列的类型
+     * <p>
+     * 只有在有数据的时候才会返回类型
+     *
+     * @param db
+     * @param tableName
+     * @param columns
+     * @return
+     */
+    public static Map<String, String> getTypeByNames(SQLiteDatabase db, String tableName, String[] columns) {
+        if (columns == null || columns.length == 0)
+            return null;
+        Map<String, String> map = new HashMap<>();
+        StringBuilder queryBuilder = new StringBuilder("select ");
+        for (String colum : columns) {
+            queryBuilder.append(" typeof(").append(colum).append(") as ").append(colum).append(",");
+        }
+        String query = queryBuilder.substring(0,queryBuilder.length()-1)+" from "+tableName;
+        Cursor cr = null;
+        try {
+            cr = db.rawQuery(query, null);
+            if (cr == null)
+                return null;
+            int count = cr.getColumnCount();
+            if (count < columns.length)
+                return null;
+            if (cr.moveToFirst()) {
+                for (String colum : columns) {
+                    map.put(colum, cr.getString(cr.getColumnIndex(colum)).toUpperCase());
+                }
+                return map;
             }
             return null;
         } finally {

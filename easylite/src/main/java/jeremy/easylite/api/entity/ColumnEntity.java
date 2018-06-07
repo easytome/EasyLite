@@ -22,7 +22,11 @@ public class ColumnEntity {
         if (TextUtils.isEmpty(name) || obj == null)
             return false;
         ColumnEntity o = (ColumnEntity) obj;
-        return name.equals(o.name) && (TextUtils.isEmpty(type) || TextUtils.isEmpty(o.type) || type.equals(o.type));
+        return name.equals(o.name) && (isEmpty(type) || isEmpty(o.type) || type.equals(o.type));
+    }
+
+    public boolean isEmpty(String str) {
+        return TextUtils.isEmpty(str) || "null".equals(str.toLowerCase());
     }
 
     public boolean equalsNameAndType(Object obj) {
@@ -39,7 +43,7 @@ public class ColumnEntity {
     public String toString() {
         return "\n\t\tColumnEntity{" +
                 "name='" + name + '\'' +
-                ", type='" + type + '\'' +
+                ", type='" + ((type == null) ? "is null" : type) + '\'' +
                 '}';
     }
 }

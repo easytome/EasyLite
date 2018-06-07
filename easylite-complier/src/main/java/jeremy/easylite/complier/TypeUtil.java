@@ -23,6 +23,8 @@ public class TypeUtil {
     public static final ClassName SimpleUpdataImpl = ClassName.bestGuess("jeremy.easylite.api.impl.SimpleUpdataImpl");
 
     public static final ClassName LogUtils = ClassName.bestGuess("jeremy.easylite.api.utils.LogUtils");
+    public static final ClassName Map = ClassName.bestGuess("java.util.Map");
+    public static final ClassName String = ClassName.bestGuess("java.lang.String");
 
     public static final String getType(String typeName) {
         if (typeName == null)

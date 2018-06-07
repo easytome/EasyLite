@@ -19,6 +19,9 @@ public class SimpleBean {
     @EasyColumn(notNull = true)//设置不能为空，不设置默认为false
     public boolean boo;
 
+    @EasyColumn
+    public String desc;
+
     public SimpleBean(String name, int mInt, boolean boo) {
         this.name = name;
         this.mInt = mInt;
@@ -32,6 +35,7 @@ public class SimpleBean {
                 ", name='" + name + '\'' +
                 ", mInt=" + mInt +
                 ", boo=" + boo +
+                ", desc=" + desc +
                 '}';
     }
 }
