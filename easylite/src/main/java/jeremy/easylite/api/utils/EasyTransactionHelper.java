@@ -1,8 +1,6 @@
-package jeremy.easylite.api;
+package jeremy.easylite.api.utils;
 
 import android.database.sqlite.SQLiteDatabase;
-
-import jeremy.easylite.api.utils.LogUtils;
 
 
 public class EasyTransactionHelper {

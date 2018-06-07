@@ -21,6 +21,7 @@ import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 
 import jeremy.easylite.annotation.EasyColumn;
+import jeremy.easylite.annotation.EasyId;
 import jeremy.easylite.annotation.EasyTable;
 import jeremy.easylite.complier.model.EasyDBClass;
 import jeremy.easylite.complier.model.TableClass;
@@ -59,6 +60,7 @@ public class EasyLiteProcessor extends AbstractProcessor {
         Set<String> types = new LinkedHashSet<>();
         types.add(EasyTable.class.getCanonicalName());
         types.add(EasyColumn.class.getCanonicalName());
+        types.add(EasyId.class.getCanonicalName());
         return types;
     }
 

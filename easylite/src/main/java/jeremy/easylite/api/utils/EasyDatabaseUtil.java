@@ -1,4 +1,4 @@
-package jeremy.easylite.api;
+package jeremy.easylite.api.utils;
 
 import android.app.Application;
 import android.content.ContentValues;
@@ -19,7 +19,7 @@ import jeremy.easylite.api.utils.Utils;
 public class EasyDatabaseUtil {
     private static SQLiteOpenHelper sql;
 
-    static void init(Application application, boolean debug) {
+    public static void init(Application application, boolean debug) {
         sql = Utils.getEasySQLOpenHelper(Config.CLASSNAME_EasyDatabaseHelper,
                 application, Config.getDatabaseName(application),
                 new EasyCursorFactory(debug),
@@ -38,23 +38,21 @@ public class EasyDatabaseUtil {
         return sql.getWritableDatabase();
     }
 
-    public static String[] getColumnNames(String tableName) {
+    public static String[] getColumnNames(SQLiteDatabase db,String tableName) {
         String[] columns = new String[0];
-        SQLiteDatabase db = getDB();
         String query = "SELECT * FROM " + tableName;
         Cursor cr = db.rawQuery(query, null);
         try {
+            // 获得所有列的数目及实际列数
             int count = cr.getColumnCount();
             if (count == 0)
                 return null;
             columns = new String[count];
             for (int i = 0; i < cr.getColumnCount(); i++) {
-                // 获得所有列的数目及实际列数
-                int columnCount = cr.getColumnCount();
                 // 获得指定列的列名
                 String columnName = cr.getColumnName(i);
                 columns[i] = columnName;
-                LogUtils.i("SQLiteDatabase getColumnNames:" + columnCount + "," + columnName);
+                LogUtils.i("SQLiteDatabase getColumnNames:" + count + "," + columnName);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,8 +62,25 @@ public class EasyDatabaseUtil {
         }
     }
 
-    public static String[] getAllTable() {
-        SQLiteDatabase db = getDB();
+    public static String getTypeByName(SQLiteDatabase db,String tableName, String columNname) {
+        String query = "select typeof(" + columNname + ") from " + tableName;
+        Cursor cr = db.rawQuery(query, null);
+        LogUtils.i("getTypeByName cr:" + cr);
+        if (cr == null)
+            return null;
+        int count = cr.getColumnCount();
+        LogUtils.i("getTypeByName count:" + count);
+        if (count == 0)
+            return null;
+        if (cr.moveToFirst()) {
+            String type = cr.getString(0).toUpperCase();
+            LogUtils.i("getTypeByName moveToFirst:" + type);
+            return type;
+        }
+        return null;
+    }
+
+    public static String[] getAllTable(SQLiteDatabase db) {
         String query = "select name from sqlite_master where type='table' order by name";
         Cursor cr = db.rawQuery(query, null);
         int count = cr.getCount();

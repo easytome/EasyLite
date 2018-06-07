@@ -6,17 +6,23 @@ import com.squareup.javapoet.ClassName;
  * 类型
  */
 public class TypeUtil {
-    public static final ClassName IEasyDao = ClassName.bestGuess("jeremy.easylite.api.IEasyDao");
+    public static final ClassName IEasyDao = ClassName.bestGuess("jeremy.easylite.api.dao.IEasyDao");
     public static final ClassName SQLiteOpenHelper = ClassName.bestGuess("android.database.sqlite.SQLiteOpenHelper");
     public static final ClassName Context = ClassName.bestGuess("android.content.Context");
     public static final ClassName CursorFactory = ClassName.bestGuess("android.database.sqlite.SQLiteDatabase.CursorFactory");
     public static final ClassName SQLiteDatabase = ClassName.bestGuess("android.database.sqlite.SQLiteDatabase");
     public static final ClassName ContentValues = ClassName.bestGuess("android.content.ContentValues");
-    public static final ClassName EasyDatabaseUtil = ClassName.bestGuess("jeremy.easylite.api.EasyDatabaseUtil");
+    public static final ClassName EasyDatabaseUtil = ClassName.bestGuess("jeremy.easylite.api.utils.EasyDatabaseUtil");
 
     public static final ClassName List = ClassName.get("java.util", "List");
     public static final ClassName ArrayList = ClassName.get("java.util", "ArrayList");
     public static final ClassName Cursor = ClassName.bestGuess("android.database.Cursor");
+
+    public static final ClassName AbstractSQLOpenHelper = ClassName.bestGuess("jeremy.easylite.api.dao.AbstractSQLOpenHelper");
+    public static final ClassName IUpdataSchema = ClassName.bestGuess("jeremy.easylite.api.dao.IUpdataSchema");
+    public static final ClassName SimpleUpdataImpl = ClassName.bestGuess("jeremy.easylite.api.impl.SimpleUpdataImpl");
+
+    public static final ClassName LogUtils = ClassName.bestGuess("jeremy.easylite.api.utils.LogUtils");
 
     public static final String getType(String typeName) {
         if (typeName == null)
@@ -67,5 +73,52 @@ public class TypeUtil {
             return "null";
         }
         return "null";
+    }
+
+    public static String getTypeToSQL(String typeName) {
+        if (typeName == null || "".equals(typeName.trim()))
+            return null;
+        String typeMirrorStr = typeName.toLowerCase();
+        if (typeMirrorStr.contains("long")
+                || typeMirrorStr.contains("int")
+                || typeMirrorStr.contains("byte")
+                || typeMirrorStr.contains("short")) {
+            return "INTEGER";
+        }
+        if (typeMirrorStr.contains("float")
+                || typeMirrorStr.contains("double")) {
+            return "REAL";
+        }
+        if (typeMirrorStr.contains("string")) {
+            return "TEXT";
+        }
+        if (typeMirrorStr.contains("boolean"))
+            return "INTEGER";
+        return null;
+    }
+
+    public static String getTypeToCursor(String typeName) {
+        if (typeName == null || "".equals(typeName.trim()))
+            return null;
+        String typeMirrorStr = typeName.toLowerCase();
+        if (typeMirrorStr.contains("long")) {
+            return "Long";
+        }
+        if (typeMirrorStr.contains("float")) {
+            return "Float";
+        }
+        if (typeMirrorStr.contains("double")) {
+            return "Double";
+        }
+        if (typeMirrorStr.contains("string")) {
+            return "String";
+        }
+        if (typeMirrorStr.contains("boolean"))
+            return "Boolean";
+        if (typeMirrorStr.contains("int"))
+            return "Int";
+        if (typeMirrorStr.contains("short"))
+            return "Short";
+        return null;
     }
 }

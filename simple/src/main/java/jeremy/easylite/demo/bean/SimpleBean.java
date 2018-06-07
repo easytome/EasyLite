@@ -7,6 +7,9 @@ import jeremy.easylite.annotation.*;
  */
 @EasyTable(name = "simple_tb")
 public class SimpleBean {
+    @EasyId(name = "simple_id",autoincrement = true)
+    public int id;
+
     @EasyColumn(unique = true)//设置唯一，不设置默认为false，注意这不是主键，默认有一个主键id，发生冲突会插入失败
     public String name;//必须用public修饰
 
@@ -14,12 +17,12 @@ public class SimpleBean {
     public int mInt;
 
     @EasyColumn(notNull = true)//设置不能为空，不设置默认为false
-    public boolean isWhat;
+    public boolean boo;
 
-    public SimpleBean(String name, int mInt, boolean isWhat) {
+    public SimpleBean(String name, int mInt, boolean boo) {
         this.name = name;
         this.mInt = mInt;
-        this.isWhat = isWhat;
+        this.boo = boo;
     }
 
     @Override
@@ -27,7 +30,7 @@ public class SimpleBean {
         return "\nSimpleBean{" +
                 "name='" + name + '\'' +
                 ", mInt=" + mInt +
-                ", isWhat=" + isWhat +
+                ", boo=" + boo +
                 '}';
     }
 }

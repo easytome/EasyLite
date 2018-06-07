@@ -3,6 +3,7 @@ package jeremy.easylite.api;
 import android.app.Application;
 
 import jeremy.easylite.api.config.Config;
+import jeremy.easylite.api.utils.EasyDatabaseUtil;
 import jeremy.easylite.api.utils.LogUtils;
 
 /**

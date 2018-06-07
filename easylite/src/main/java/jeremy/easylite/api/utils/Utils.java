@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.lang.reflect.Constructor;
 
-import jeremy.easylite.api.IEasyDao;
+import jeremy.easylite.api.dao.IEasyDao;
 import jeremy.easylite.api.config.Config;
 
 /**

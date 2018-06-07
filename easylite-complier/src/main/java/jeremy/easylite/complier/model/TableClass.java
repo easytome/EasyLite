@@ -17,11 +17,11 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import jeremy.easylite.annotation.EasyColumn;
+import jeremy.easylite.annotation.EasyId;
 import jeremy.easylite.annotation.EasyTable;
 import jeremy.easylite.complier.TypeUtil;
 import jeremy.easylite.complier.exception.FieldModifierException;
@@ -33,17 +33,20 @@ import jeremy.easylite.complier.exception.FieldModifierException;
  */
 public class TableClass {
     final static String NAMEAPPEND = "EasyDao";
-    private String KEY_ID = "_easy_id";
 
     public static TableClass create(TypeElement tableEle) {
         return new TableClass(tableEle);
     }
 
     private Name qualifiedName;//类全名（包名.名称）
+
     private Name simpleName;//类简单名
     private TypeMirror typeMirror;
 
     private String tableName;//注解获取的表名
+
+    private IdField easyIdField;
+    private IdField easyIdFieldDefault;
 
     private List<ColumnField> columnFields = new ArrayList<>();
     private List<String> constructorParams = new ArrayList<>();
@@ -51,6 +54,7 @@ public class TableClass {
     private String CREATE_TABLE;
 
     private TypeName listOfQualified;
+    private ClassName qualified;
 
     private TableClass(TypeElement tableEle) {
         qualifiedName = tableEle.getQualifiedName();
@@ -63,7 +67,7 @@ public class TableClass {
         initColumn(tableEle);
         CREATE_TABLE = createTableSQL();
 
-        ClassName qualified = ClassName.bestGuess(qualifiedName.toString());
+        qualified = ClassName.bestGuess(qualifiedName.toString());
         listOfQualified = ParameterizedTypeName.get(TypeUtil.List, qualified);//List<T>
     }
 
@@ -79,6 +83,18 @@ public class TableClass {
         return javaFileBuilder.build();
     }
 
+    public List<ColumnField> getColumnFields() {
+        return columnFields;
+    }
+
+    public IdField getEasyIdField() {
+        return easyIdField == null ? easyIdFieldDefault : easyIdField;
+    }
+
+    public Name getSimpleName() {
+        return simpleName;
+    }
+
     /**
      * 构建类
      */
@@ -92,13 +108,14 @@ public class TableClass {
                 .addMethod(getUpdataMethod())
                 .addMethod(getDeleteMethod())
                 .addMethod(getFindMethod())
+                .addMethod(getFindByIdMethod())
                 .addMethod(getCountMethod())
                 .addMethod(getContentValuesMethod());
 
-        FieldSpec.Builder keyIdBuilder = FieldSpec.builder(String.class, "KEY" + KEY_ID.toUpperCase(),
+        FieldSpec.Builder keyIdBuilder = FieldSpec.builder(String.class, "KEY_ID",
                 Modifier.STATIC, Modifier.PUBLIC, Modifier.FINAL)
-                .initializer("\"" + KEY_ID + "\"")
-                .addJavadoc(KEY_ID + "'s key!");
+                .initializer("\"" + (easyIdField == null ? IdField.DEFAULT_KEY_ID : easyIdField.getName()) + "\"")
+                .addJavadoc("id's key!");
         finderClass.addField(keyIdBuilder.build());
 
         for (ColumnField columnField : columnFields) {//导入key值
@@ -179,7 +196,6 @@ public class TableClass {
         MethodSpec.Builder findBuilder = MethodSpec.methodBuilder("find")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(String[].class, "columns")
                 .addParameter(String.class, "selection")
                 .addParameter(String[].class, "selectionArgs")
                 .addParameter(String.class, "groupBy")
@@ -189,21 +205,31 @@ public class TableClass {
                 .returns(listOfQualified)
                 .addStatement("$T list = new $T<>()", listOfQualified, TypeUtil.ArrayList)
                 .addStatement("$T c = $T.find(\"$N\",$N,$N,$N,$N,$N,$N,$N)",
-                        TypeUtil.Cursor, TypeUtil.EasyDatabaseUtil, getTableName(), "columns", "selection",
+                        TypeUtil.Cursor, TypeUtil.EasyDatabaseUtil, getTableName(), "null", "selection",
                         "selectionArgs", "groupBy", "having", "orderBy", "limit")
                 .beginControlFlow("try")
                 .beginControlFlow("if($N.moveToFirst())", "c")
                 .beginControlFlow("do");
         StringBuilder params = new StringBuilder();
-        for (int i = 0;i<constructorParams.size();i++){
+        for (int i = 0; i < constructorParams.size(); i++) {
             String param = constructorParams.get(i);
-            findBuilder.addStatement("$N $N=$N",param,"o"+i,TypeUtil.getTypeInitParam(param));
+            findBuilder.addStatement("$N $N=$N", param, "o" + i, TypeUtil.getTypeInitParam(param));
             params.append("o").append(i);
-            if (i!=constructorParams.size()-1){
+            if (i != constructorParams.size() - 1) {
                 params.append(", ");
             }
         }
-        findBuilder.addStatement("$N info = new $N($N)", simpleName, simpleName,params.toString());
+        findBuilder.addStatement("$N info = new $N($N)", simpleName, simpleName, params.toString());
+        if (easyIdField != null) {
+            String type = easyIdField.getTypeToCursor();
+            if (type != null) {
+                if (type.equals("Boolean")) {
+                    findBuilder.addStatement("info.$N=c.getInt(c.getColumnIndex(\"$N\"))>0", easyIdField.getSimpleName(), easyIdField.getName());
+                } else {
+                    findBuilder.addStatement("info.$N=c.get$N(c.getColumnIndex(\"$N\"))", easyIdField.getSimpleName(), type, easyIdField.getName());
+                }
+            }
+        }
         for (ColumnField columnField : columnFields) {
             String type = columnField.getTypeToCursor();
             if (type == null)
@@ -232,6 +258,29 @@ public class TableClass {
     }
 
     /**
+     * 构建FindById方法
+     */
+    private MethodSpec getFindByIdMethod() {
+        String key_id = easyIdField == null ? IdField.DEFAULT_KEY_ID : easyIdField.getName();
+        MethodSpec.Builder findBuilder = MethodSpec.methodBuilder("findById")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(Object.class, "id")
+                .returns(qualified)
+                .beginControlFlow("if(id==null)")
+                .addStatement("return null")
+                .endControlFlow()
+                .addStatement("$T list = find($N,$N,$N,$N,$N,$N)",
+                        listOfQualified, "\"" + key_id + "=\"+id",
+                        "null", "null", "null", "null", "null")
+                .beginControlFlow("if(list==null||list.size()==0)")
+                .addStatement("return null")
+                .endControlFlow()
+                .addStatement("return list.get(0)");
+        return findBuilder.build();
+    }
+
+    /**
      * 构建getContentValues方法
      */
     private MethodSpec getContentValuesMethod() {
@@ -241,7 +290,9 @@ public class TableClass {
                 .addParameter(TypeName.get(typeMirror), "t")
                 .returns(TypeUtil.ContentValues)
                 .addStatement("ContentValues v = new ContentValues()");
-
+        if (easyIdField != null) {
+            getContentValuesBuilder.addStatement("v.put(\"$N\",t.$N)", easyIdField.getName(), easyIdField.getSimpleName());
+        }
         for (ColumnField columnField : columnFields) {
             getContentValuesBuilder.addStatement("v.put(\"$N\",t.$N)", columnField.getName(), columnField.getSimpleName());
         }
@@ -282,24 +333,30 @@ public class TableClass {
         for (Element enclosed : enclosedEle) {
             if (enclosed.getKind().isField()) {
                 VariableElement columnEle = (VariableElement) enclosed;
-                EasyColumn easyColumn = columnEle.getAnnotation(EasyColumn.class);
                 if (!columnEle.getModifiers().contains(Modifier.PUBLIC)) {
                     throwNewException(simpleName + "/" + columnEle.getSimpleName() + ":Must use public field!!");
                     return;
                 }
+                EasyColumn easyColumn = columnEle.getAnnotation(EasyColumn.class);
                 if (easyColumn != null) {
                     columnFields.add(new ColumnField(columnEle.getSimpleName(), columnEle.asType(), easyColumn.name(), easyColumn.unique(), easyColumn.notNull()));
+                } else {
+                    EasyId easyId = columnEle.getAnnotation(EasyId.class);
+                    if (easyId != null) {
+                        easyIdField = new IdField(columnEle.getSimpleName().toString(), columnEle.asType().toString(), easyId.name(), easyId.autoincrement());
+                    }
                 }
             } else if (enclosed.getKind() == ElementKind.CONSTRUCTOR) {
                 constructorParams.clear();
                 ExecutableElement constructorElement = (ExecutableElement) enclosed;
                 List<? extends VariableElement> parameters = constructorElement.getParameters();
                 for (VariableElement parameterElement : parameters) {
-                    System.out.println("parameterElement:" + parameterElement.asType() + "");
                     constructorParams.add(parameterElement.asType().toString());
                 }
             }
         }
+
+        easyIdFieldDefault = new IdField(IdField.DEFAULT_KEY_ID, "long", IdField.DEFAULT_KEY_ID, true);
     }
 
     private void throwNewException(String err) {
@@ -313,9 +370,11 @@ public class TableClass {
     private String createTableSQL() {
         StringBuilder CREATE_TABLE = new StringBuilder("CREATE TABLE ")
                 .append(tableName)
-                .append("(")
-                .append(KEY_ID)
-                .append(" INTEGER PRIMARY KEY AUTOINCREMENT,");
+                .append("(");
+        if (easyIdField == null)
+            CREATE_TABLE.append(IdField.getDefaultSQL());
+        else
+            CREATE_TABLE.append(easyIdField.getColumnSQL());
         for (ColumnField columnField : columnFields) {
             CREATE_TABLE.append(columnField.getColumnSQL());
         }
@@ -324,7 +383,7 @@ public class TableClass {
         return str;
     }
 
-    private String getTableName() {
+    public String getTableName() {
         return tableName;
     }
 }

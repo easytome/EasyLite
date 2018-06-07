@@ -3,6 +3,8 @@ package jeremy.easylite.complier.model;
 import javax.lang.model.element.Name;
 import javax.lang.model.type.TypeMirror;
 
+import jeremy.easylite.complier.TypeUtil;
+
 /**
  * Created by JIANGJIAN650 on 2018/5/25.
  * 数据库列
@@ -47,50 +49,15 @@ public class ColumnField {
     }
 
     String getTypeToCursor() {
-        if (typeMirror == null || "".equals(typeMirror.toString().toLowerCase()))
+        if (typeMirror == null || "".equals(typeMirror.toString()))
             return null;
-        String typeMirrorStr = typeMirror.toString().toLowerCase();
-        if (typeMirrorStr.contains("long")) {
-            return "Long";
-        }
-        if (typeMirrorStr.contains("float")) {
-            return "Float";
-        }
-        if (typeMirrorStr.contains("double")) {
-            return "Double";
-        }
-        if (typeMirrorStr.contains("string")) {
-            return "String";
-        }
-        if (typeMirrorStr.contains("boolean"))
-            return "Boolean";
-        if (typeMirrorStr.contains("int"))
-            return "Int";
-        if (typeMirrorStr.contains("short"))
-            return "Short";
-        return null;
+        return TypeUtil.getTypeToCursor(typeMirror.toString());
     }
 
-    private String getTypeToSQL() {
-        if (typeMirror == null || "".equals(typeMirror.toString().toLowerCase()))
+    String getTypeToSQL() {
+        if (typeMirror == null || "".equals(typeMirror.toString()))
             return null;
-        String typeMirrorStr = typeMirror.toString().toLowerCase();
-        if (typeMirrorStr.contains("long")
-                || typeMirrorStr.contains("int")
-                || typeMirrorStr.contains("byte")
-                || typeMirrorStr.contains("short")) {
-            return "INTEGER";
-        }
-        if (typeMirrorStr.contains("float")
-                || typeMirrorStr.contains("double")) {
-            return "REAL";
-        }
-        if (typeMirrorStr.contains("string")) {
-            return "TEXT";
-        }
-        if (typeMirrorStr.contains("boolean"))
-            return "BOOLEAN";
-        return null;
+        return TypeUtil.getTypeToSQL(typeMirror.toString());
     }
 
     @Override

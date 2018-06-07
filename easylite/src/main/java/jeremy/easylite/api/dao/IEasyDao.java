@@ -1,4 +1,4 @@
-package jeremy.easylite.api;
+package jeremy.easylite.api.dao;
 
 import android.content.ContentValues;
 
@@ -17,9 +17,11 @@ public interface IEasyDao<T> {
 
     public ContentValues getContentValues(T t);
 
-    public List<T> find(String[] columns, String selection,
+    public List<T> find(String selection,
                         String[] selectionArgs, String groupBy, String having,
                         String orderBy, String limit);
+
+    public T findById(Object id);
 
     public long count(String whereClause, String[] whereArgs);
 }

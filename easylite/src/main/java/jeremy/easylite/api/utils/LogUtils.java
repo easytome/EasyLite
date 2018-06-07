@@ -4,9 +4,10 @@ import android.text.TextUtils;
 import android.util.Log;
 
 /**
+ * 日志Utils
+ * <p>
  * Created by JIANGJIAN650 on 2018/5/22.
  */
-
 public class LogUtils {
     private final static String TAG = "EasyLiteLogUtils";
     private static int LOG_MAXLENGTH = 2000;
