@@ -27,8 +27,9 @@ public class SimpleBean {
 
     @Override
     public String toString() {
-        return "\nSimpleBean{" +
-                "name='" + name + '\'' +
+        return "SimpleBean{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 ", mInt=" + mInt +
                 ", boo=" + boo +
                 '}';

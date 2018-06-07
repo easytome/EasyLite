@@ -165,6 +165,8 @@ public class EasyDBClass {
                 .addParameter(TypeUtil.SQLiteDatabase, "db")
                 .addModifiers(Modifier.PRIVATE)
                 .returns(listOfTableEntity)
+                .addStatement("db.beginTransaction()")
+                .beginControlFlow("try")
                 .addStatement("$T list = new $T()", listOfTableEntity, TypeUtil.ArrayList)
                 .addStatement("String[] tables = $T.getAllTable(db)", TypeUtil.EasyDatabaseUtil)
                 .beginControlFlow("if(tables == null)")
@@ -188,7 +190,11 @@ public class EasyDBClass {
                 .addStatement("tableEntity.columnNum = count")
                 .addStatement("list.add(tableEntity)")
                 .endControlFlow()
-                .addStatement("return list");
+                .addStatement("db.setTransactionSuccessful()")
+                .addStatement("return list")
+                .nextControlFlow("finally")
+                .addStatement("db.endTransaction()")
+                .endControlFlow();
         return method;
     }
 }
