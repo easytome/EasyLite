@@ -5,12 +5,12 @@ import jeremy.easylite.annotation.*;
 /**
  * Created by JIANGJIAN650 on 2018/5/29.
  */
-@EasyTable(name = "simple_tb")
+@EasyTable(name = "simple_tb")//设置表名 如果不设置name直接用@EasyTable默认为类名
 public class SimpleBean {
-    @EasyId(name = "simple_id", autoincrement = false)
+    @EasyId(name = "simple_id", autoincrement = false)//设置主键
     public Long id;
 
-    @EasyColumn()//设置唯一，不设置默认为false，注意这不是主键，默认有一个主键id，发生冲突会插入失败
+    @EasyColumn(unique = true)//设置唯一，不设置默认为false，注意这不是主键，默认有一个主键id，发生冲突会插入失败
     public String name;//必须用public修饰
 
     @EasyColumn(name = "MINT")//设置数据库列名不设置默认为参数名
